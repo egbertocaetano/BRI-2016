@@ -15,12 +15,12 @@ def tokenize_text(text):
 def contains_number(token):
 	p = re.compile('\d+')
 
-	if p.findall(token) != []:
-		return True
+	if p.findall(token) == []:
+		return False
 	else:
-		return False		
+		return True		
 
-
+#Removendo palavras de acordo com o que foi específicado nas instruções descritas no Indexador 2.d
 def remove_stopwords(tokens):
 
 	no_stopwords = []
