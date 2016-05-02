@@ -85,8 +85,6 @@ class GeneratorInvertedList(object):
 
 		inverted_list_cvs = []
 
-		inverted_list_cvs.append("TOTAL;[" + str(self.terms_number) + "," + str(self.documents_number) + "]")
-
 		for token , document_list in self.inverted_list.items():
 			inverted_list_cvs.append(str(token) + ";" + str(document_list))
 
@@ -119,3 +117,10 @@ class GeneratorInvertedList(object):
 			    	tokens = self.tokenize_text(element.text)
 			    	self.no_stopwords_tokens = self.remove_stopwords(tokens)
 			    	self.insert_inverted_list(self.document_id, self.no_stopwords_tokens)
+
+
+
+g = GeneratorInvertedList()
+g.get_paths_files("GLI.CFG")
+g.read_xmls()
+g.write_csv()

@@ -1,18 +1,16 @@
-import math
 import numpy as np
-
-
+from sklearn.feature_extraction.text import TfidfVectorizer
+from pickle import dump, load
 
 
 class IndexerInvertedList(object):
 
-	def __init__(self):
+	def __init__(self, model):
 		self.path_write = ""
 		self.paths_reads = []
-		self.terms = []
-		self.terms_documents = []
-		self.terms_number = None
-		self.documents_number = None
+		self.contents = {}
+		self.model = model
+		self.terms_documents = None
 		self.tf = []
 		self.idf = []
 		self.tf_idf = []
@@ -47,57 +45,41 @@ class IndexerInvertedList(object):
 
 		files.close()
 
-	#Recovering the quantity of terms and documents, and create the terms documents matrix
-	def create_matrices(self, line):
+	def create_term_document(self):
+		mod = self.model(ngram_range=(1,1))
+		self.terms_documents = mod.fit_transform(self.contents.values())
 
-
-		splited = line.split(";")
-
-		quantities = splited[1][1:-2].split(",")
-
-		self.terms_number = int(quantities[0])
-		self.documents_number = int(quantities[1])
-
-		self.terms_documents = np.zeros((self.terms_number, self.documents_number)) #term-document matrix
-
-		self.tf =  np.zeros((self.terms_number, self.documents_number)) #tf matrix
-
-		self.idf = np.zeros((self.terms_number, 1)) #idf list 
-
-	#Reading csv file that content the inverted list and create matrices
+	#Reading csv file that content the inverted list and create term documents frenquecy matrix
 	def read_csv_file(self, csv_file_path):
 
 		csv_file = open(csv_file_path, 'r')
-
-		self.create_matrices(csv_file.readline())
 
 		for line in csv_file.readlines():
 
 			splited = line.split(";")
 
-			self.terms.append(splited[0])
-
-			term_index = self.terms.index(splited[0])
-
+			token = splited[0]
 			documents = splited[1][1:-2].split(",")
 
-			self.idf[term_index] = math.log(self.documents_number/len(documents))
+			for did in documents:
+				did = int(did)
+				if did not in self.contents:
+					self.contents[did] = ""
 
-			
-			for dci in documents:
-				self.terms_documents[term_index, (int(dci)-1)] += 1 #Filling the matrix with frequency of terms in documents
-				self.tf[term_index, (int(dci)-1)] = 1 + math.log(self.terms_documents[term_index, (int(dci)-1)]) #Filling the tf matrix
+				self.contents[did] += token + " "
 
-
-		print(self.tf[9][499])
-		print(self.idf[9])		
-
-
+	def write_output(self):
+		export = {}
+		export["matrix"] = self.terms_documents
+		export["contents"] = self.contents
+		with open(self.path_write, "wb") as file:
+			dump(export, file)		
 		
-i = IndexerInvertedList()
+i = IndexerInvertedList(TfidfVectorizer)
 i.get_paths_files("INDEX.CFG")
 i.read_csv_file('data/inverted_list.csv')
-
+i.create_term_document()
+i.write_output()
 
 
 
