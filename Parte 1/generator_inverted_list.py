@@ -9,14 +9,14 @@ import unicodedata
 class GeneratorInvertedList(object):
 
 	def __init__(self):
-		self.path_write = ""
-		self.paths_reads = []
+		self.write_path = ""
+		self.read_paths = []
 		self.inverted_list = {}
 		self.document_id = None
-		self.tokens = []
+		#self.tokens = []
 		self.no_stopwords_tokens = []
-		self.documents_number = 0
-		self.terms_number = 0
+		#self.documents_number = 0
+		#self.terms_number = 0
 
 
 	def tokenize_text(self, text):
@@ -37,7 +37,7 @@ class GeneratorInvertedList(object):
 		no_stopwords = []
 
 		for token in tokens:
-			if len(token) > 2 and self.contains_number(token) is False:
+			if len(token) > 1 and self.contains_number(token) is False:
 				no_stopwords.append(token)
 			else: 
 				pass
@@ -49,7 +49,7 @@ class GeneratorInvertedList(object):
 		for token in tokens:
 			if not token in self.inverted_list:
 				self.inverted_list[token] = []
-				self.terms_number +=  1
+				#self.terms_number +=  1
 			self.inverted_list[token].append(document_id)	
 
 	def get_paths_files(self, files_list):
@@ -67,16 +67,16 @@ class GeneratorInvertedList(object):
 			path = splited[1].replace('\n','')
 
 			if command == "LEIA":
-				self.paths_reads.append(path)
+				self.read_paths.append(path)
 			elif command == "ESCREVA":
-				self.path_write = path
+				self.write_path = path
 			else:
 				print("Erro no commando")
 
-		if len(self.paths_reads) == 0:
+		if len(self.read_paths) == 0:
 			print("Não tem comandos de LEIA!!!!")
 
-		if len(self.path_write) == 0:
+		if len(self.write_path) == 0:
 			print("Não tem comando de ESCREVA!!!")		
 
 		files.close()
@@ -93,19 +93,19 @@ class GeneratorInvertedList(object):
 
 	def write_csv(self):
 
-		out_csv = open(self.path_write, "w")
+		out_csv = open(self.write_path, "w")
 		out_csv.write(self.generate_csv(self.inverted_list))
 		out_csv.close()
 
 	def read_xmls(self):
 
-		for file in self.paths_reads:
+		for file in self.read_paths:
 			for event, element in etree.iterparse(file, tag=["RECORDNUM","ABSTRACT","EXTRACT"]):
 
 			    if element.tag == "RECORDNUM":
 			    
 			        self.document_id = int(element.text)
-			        self.documents_number += 1
+			        #self.documents_number += 1
 
 			    if element.tag == "ABSTRACT":
 			    
