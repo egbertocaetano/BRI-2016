@@ -70,6 +70,7 @@ class Processor(object):
 	
 		files.close()
 
+	#Write files on espcified path	
 	def write_csv(self):
 		queries_csv, expecteds_csv = self.generate_csv()
 
@@ -81,6 +82,7 @@ class Processor(object):
 		expected_out.write(expecteds_csv)	
 		expected_out.close()
 
+	#Load e read data from especified xml	
 	def read_xmls(self):
 
 		for file in self.read_paths:

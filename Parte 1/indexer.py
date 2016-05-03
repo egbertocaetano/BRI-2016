@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from pickle import dump, load
+from pickle import dump
 
 
 class IndexerInvertedList(object):
@@ -9,7 +9,7 @@ class IndexerInvertedList(object):
 		self.path_write = ""
 		self.paths_reads = []
 		self.contents = {}
-		self.model = model
+		self.model_type = model
 		self.terms_documents = None
 		self.tf = []
 		self.idf = []
@@ -46,7 +46,7 @@ class IndexerInvertedList(object):
 		files.close()
 
 	def create_term_document(self):
-		mod = self.model(ngram_range=(1,1))
+		mod = self.model_type(ngram_range=(1,1))
 		self.terms_documents = mod.fit_transform(self.contents.values())
 
 	#Reading csv file that content the inverted list and create term documents frenquecy matrix
@@ -68,7 +68,9 @@ class IndexerInvertedList(object):
 
 				self.contents[did] += token + " "
 
-	def write_output(self):
+		csv_file.close()		
+
+	def write_model(self):
 		export = {}
 		export["matrix"] = self.terms_documents
 		export["contents"] = self.contents
@@ -79,7 +81,7 @@ i = IndexerInvertedList(TfidfVectorizer)
 i.get_paths_files("INDEX.CFG")
 i.read_csv_file('data/inverted_list.csv')
 i.create_term_document()
-i.write_output()
+i.write_model()
 
 
 
