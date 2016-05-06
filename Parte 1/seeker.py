@@ -1,7 +1,8 @@
 from pickle import dump, load
 from pprint import pformat
 from sklearn.feature_extraction.text import TfidfVectorizer	
-
+from sklearn.metrics.pairwise import pairwise_distances
+import numpy as np
 
 class Seeker(object):
 
@@ -15,7 +16,10 @@ class Seeker(object):
 		self.term_document = None
 		self.content = None
 		self.queries_matrix = None 
-	
+		self.distance_matrix = None
+		self.ranking = None
+
+
 	def get_paths_files(self):
 
 		files = open(self.cfg_file, 'r')
@@ -83,8 +87,15 @@ class Seeker(object):
 		self.queries_matrix = typ_model.transform(self.queries.values())
 
 
+	def retrieval(self):
+		
+		self.distance_matrix = pairwise_distances(self.queries_matrix, self.term_document, metric="cosine", n_jobs=4)
+		self.ranking = np.argsort(self.distance_matrix, axis=1)
+
+
 s = Seeker("BUSCA.CFG", TfidfVectorizer)
 s.get_paths_files()
 s.read_queries()
 s.read_model()
 s.generate_queries_matrix()
+s.retrieval()
