@@ -8,15 +8,14 @@ import unicodedata
 
 class GeneratorInvertedList(object):
 
-	def __init__(self):
+	def __init__(self, cfg_file):
+		self.cfg_file = cfg_file
 		self.write_path = ""
 		self.read_paths = []
 		self.inverted_list = {}
 		self.document_id = None
-		#self.tokens = []
 		self.no_stopwords_tokens = []
-		#self.documents_number = 0
-		#self.terms_number = 0
+		self.inverted_list_csv = None
 
 
 	def tokenize_text(self, text):
@@ -33,7 +32,6 @@ class GeneratorInvertedList(object):
 
 	#Removendo palavras de acordo com o que foi específicado nas instruções descritas no Indexador 2.d
 	def remove_stopwords(self,tokens):
-
 		no_stopwords = []
 
 		for token in tokens:
@@ -52,9 +50,11 @@ class GeneratorInvertedList(object):
 				#self.terms_number +=  1
 			self.inverted_list[token].append(document_id)	
 
-	def get_paths_files(self, files_list):
+	def get_paths_files(self):
 		
-		files = open(files_list, 'r')
+		print("Generator Inverted List - Lendo arquivo de configuração:", self.cfg_file,"...")
+
+		files = open(self.cfg_file, 'r')
 		
 		for line in files.readlines():
 			
@@ -83,23 +83,27 @@ class GeneratorInvertedList(object):
 
 	def generate_csv(self, inverted_list):
 
+		print("Generator Inverted List - Gerando o arquivo de saída .csv...")
+
 		inverted_list_cvs = []
 
 		for token , document_list in self.inverted_list.items():
 			inverted_list_cvs.append(str(token) + ";" + str(document_list))
 
-		return "\n".join(inverted_list_cvs)
+		self.inverted_list_cvs = "\n".join(inverted_list_cvs)
 
 
 	def write_csv(self):
 
+		print("Generator Inverted List - Escrevendo arquivo de saída contendo lista invertida na extensão csv...")
 		out_csv = open(self.write_path, "w")
-		out_csv.write(self.generate_csv(self.inverted_list))
+		out_csv.write(self.inverted_list_cvs)
 		out_csv.close()
 
 	def read_xmls(self):
-
+		print("Generator Inverted List - Iniciando a leitura dos arquivos xmls e gerando a list invertida...")
 		for file in self.read_paths:
+			print("Generator Inverted List - Lendo o arquivo:",file)
 			for event, element in etree.iterparse(file, tag=["RECORDNUM","ABSTRACT","EXTRACT"]):
 
 			    if element.tag == "RECORDNUM":
@@ -119,8 +123,11 @@ class GeneratorInvertedList(object):
 			    	self.insert_inverted_list(self.document_id, self.no_stopwords_tokens)
 
 
+	def execute(self):
+		
+		self.get_paths_files()
+		self.read_xmls()
+		self.generate_csv(self.inverted_list)
+		self.write_csv()
+		
 
-g = GeneratorInvertedList()
-g.get_paths_files("GLI.CFG")
-g.read_xmls()
-g.write_csv()

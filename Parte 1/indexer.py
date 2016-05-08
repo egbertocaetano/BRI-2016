@@ -5,7 +5,8 @@ from pickle import dump
 
 class IndexerInvertedList(object):
 
-	def __init__(self, model):
+	def __init__(self, model, cfg_file):
+		self.cfg_file = cfg_file
 		self.path_write = ""
 		self.paths_reads = []
 		self.contents = {}
@@ -16,9 +17,11 @@ class IndexerInvertedList(object):
 		self.tf_idf = []
 
 	#Reading the config file for get the paths of files
-	def get_paths_files(self, files_list):
+	def get_paths_files(self):
 		
-		files = open(files_list, 'r')
+		print("Indexer Inverted List - Lendo arquivo de configuração:", self.cfg_file,"...")
+
+		files = open(self.cfg_file, 'r')
 		
 		for line in files.readlines():
 			
@@ -46,42 +49,54 @@ class IndexerInvertedList(object):
 		files.close()
 
 	def create_term_document(self):
+
+		print("Indexer Inverted List - Gerando modelo...")
+
 		mod = self.model_type(ngram_range=(1,1))
 		self.terms_documents = mod.fit_transform(self.contents.values())
 
 	#Reading csv file that content the inverted list and create term documents frenquecy matrix
-	def read_csv_file(self, csv_file_path):
+	def read_csv_file(self):
 
-		csv_file = open(csv_file_path, 'r')
+		print("Indexer Inverted List - Lendo Lista Invertida...")
 
-		for line in csv_file.readlines():
+		for file in self.paths_reads:
 
-			splited = line.split(";")
+			csv_file = open(file, 'r')
 
-			token = splited[0]
-			documents = splited[1][1:-2].split(",")
+			for line in csv_file.readlines():
 
-			for did in documents:
-				did = int(did)
-				if did not in self.contents:
-					self.contents[did] = ""
+				splited = line.split(";")
 
-				self.contents[did] += token + " "
+				token = splited[0]
+				documents = splited[1][1:-2].split(",")
 
-		csv_file.close()		
+				for did in documents:
+					did = int(did)
+					if did not in self.contents:
+						self.contents[did] = ""
+
+					self.contents[did] += token + " "
+
+			csv_file.close()		
 
 	def write_model(self):
+		print("Indexer Inverted List - Escrevendo modelo...")
 		export = {}
 		export["matrix"] = self.terms_documents
 		export["contents"] = self.contents
 		with open(self.path_write, "wb") as file:
 			dump(export, file)		
 		
-i = IndexerInvertedList(TfidfVectorizer)
-i.get_paths_files("INDEX.CFG")
-i.read_csv_file('data/inverted_list.csv')
-i.create_term_document()
-i.write_model()
+	def execute(self):
+		
+		self.get_paths_files()
+		self.read_csv_file()
+		self.create_term_document()
+		self.write_model()	
+		
+
+
 
 
 

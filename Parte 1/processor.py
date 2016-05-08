@@ -38,6 +38,8 @@ class Processor(object):
 
 	def get_paths_files(self):
 
+		print("Processor - Lendo arquivo de configuração:", self.cfg_file,"...")
+
 		files = open(self.cfg_file, 'r')
 		
 		for line in files.readlines():
@@ -72,12 +74,16 @@ class Processor(object):
 
 	#Write files on espcified path	
 	def write_csv(self):
+
+
 		queries_csv, expecteds_csv = self.generate_csv()
 
+		print("Processor - Escrevendo consultas...")
 		queries_out = open(self.queries_path, "w")
 		queries_out.write(queries_csv)
 		queries_out.close()
 
+		print("Processor - Escrevendo esperados...")
 		expected_out = open(self.expecteds_path, "w")
 		expected_out.write(expecteds_csv)	
 		expected_out.close()
@@ -85,7 +91,9 @@ class Processor(object):
 	#Load e read data from especified xml	
 	def read_xmls(self):
 
+		print("Processor - Iniciando a leitura dos arquivos xmls...")
 		for file in self.read_paths:
+			print("Processor - Lendo o arquivo:",file)
 			for event, element in etree.iterparse(file, tag=["QueryNumber","QueryText","Item"]):
 
 			    if element.tag == "QueryNumber":
@@ -105,10 +113,12 @@ class Processor(object):
 			    if element.tag == "Item":    
 			    	doc_id = int(element.text)
 			    	score = int(element.attrib.values()[0])
-			    	self.queries[self.query_id]["expecteds"].append((doc_id,score))
+			    	self.queries[self.query_id]["expecteds"].append((doc_id,score))	    	
 
 	def generate_csv(self):
 
+
+		print("Processor - Gerando queries.csv e expected.csv")
 		queries_lines = []
 		expecteds_lines = []
 
@@ -118,7 +128,9 @@ class Processor(object):
 
 		return "\n".join(queries_lines), "\n".join(expecteds_lines)	    	
 
-p = Processor("PC.CFG")
-p.get_paths_files()
-p.read_xmls()
-p.write_csv()
+	def execute(self):
+		
+		self.get_paths_files()
+		self.read_xmls()
+		self.write_csv()	
+	
