@@ -3,6 +3,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import pairwise_distances
 import numpy as np
 
+import logging
+
+logging.basicConfig(format='[%(levelname)s %(asctime)s %(name)s]\t%(message)s',filename='application.log',level=logging.INFO)
+
+
 class Seeker(object):
 
 	def __init__(self, model, cfg_file):
@@ -19,11 +24,12 @@ class Seeker(object):
 		self.queries_matrix = None 
 		self.distance_matrix = None
 		self.ranking = None
+		self.logger = logging.getLogger(__name__)
 
 
 	def get_paths_files(self):
 
-		print("Seeker - Lendo arquivo de comfiguração:",self.cfg_file, "..." )
+		self.logger.info("Seeker - Lendo arquivo de comfiguração:" + self.cfg_file + "..." )
 		files = open(self.cfg_file, 'r')
 		
 		for line in files.readlines():
@@ -31,7 +37,7 @@ class Seeker(object):
 			splited = line.split('=')
 
 			if len(splited) != 2:
-				print ("ERRO de leitura!!!!")
+				self.logger.error ("ERRO de leitura!!!!")
 
 			command	= splited[0]
 			path = splited[1].replace('\n','')
@@ -43,23 +49,23 @@ class Seeker(object):
 			elif command == "RESULTADO":
 				self.result_path = path
 			else:
-				print("Erro no commando")
+				self.logger.error("Erro no commando")
 
 		if len(self.model_path) == 0:
-			print("Não tem comandos de MODEL!!!!")
+			self.logger.error("Não tem comandos de MODEL!!!!")
 
 		if len(self.queries_path) == 0:
-			print("Não tem comando de CONSULTAS!!!")		
+			self.logger.error("Não tem comando de CONSULTAS!!!")		
 
 		if len(self.result_path) == 0:
-			print("Não tem comando de RESULTADO!!!")		
+			self.logger.error("Não tem comando de RESULTADO!!!")		
 	
 		files.close()
 
 
 	def read_model(self):
 
-		print("Seeker - Carregando o modelo em memória..." )
+		self.logger.info("Seeker - Carregando o modelo em memória..." )
 		
 		model_file = open(self.model_path, "rb")
 		data = load(model_file)
@@ -72,7 +78,7 @@ class Seeker(object):
 
 	def write_csv(self):
 
-		print("Seeker - Escrevendo arquivo contendo os resultados na extensão csv...")
+		self.logger.info("Seeker - Escrevendo arquivo contendo os resultados na extensão csv...")
 
 		with open(self.result_path, "w") as results_file:
 			results_file.write(self.generate_csv())
@@ -80,7 +86,7 @@ class Seeker(object):
 
 	def read_queries(self):
 
-		print("Seeker - Carregando consultas em memória...")
+		self.logger.info("Seeker - Carregando consultas em memória...")
 
 		queries_file = open(self.queries_path, 'r')
 
@@ -100,7 +106,7 @@ class Seeker(object):
 
 	def generate_queries_matrix(self):
 
-		print("Seeker - Gerando a matriz de queries...")
+		self.logger.info("Seeker - Gerando a matriz de queries...")
 		
 		typ_model = self.model_type(ngram_range=(1,1))
 		typ_model.fit(self.content.values())
@@ -109,15 +115,15 @@ class Seeker(object):
 
 	def retrieval(self):
 		
-		print("Seeker - Calculando a distância...")
+		self.logger.info("Seeker - Calculando a distância...")
 		self.distance_matrix = pairwise_distances(self.queries_matrix, self.term_document, metric="cosine", n_jobs=4)
-		print("Seeer - Fazendo o rankeamento...")
+		self.logger.info("Seeer - Fazendo o rankeamento...")
 		self.ranking = np.argsort(self.distance_matrix, axis=1)
 
 
 	def generate_csv(self):
 
-		print("Seeker - Gerando o arquivo de saída .csv...")
+		self.logger.info("Seeker - Gerando o arquivo de saída .csv...")
 
 		lines = []
 

@@ -3,6 +3,9 @@ from nltk import word_tokenize
 import re
 import unicodedata
 
+import logging
+
+logging.basicConfig(format='[%(levelname)s %(asctime)s %(name)s]\t%(message)s',filename='application.log',level=logging.INFO)
 
 
 class Processor(object):
@@ -18,6 +21,7 @@ class Processor(object):
 		self.query_text = ""
 		self.no_stopwords_tokens =[]
 		self.queries = {}
+		self.logger = logging.getLogger(__name__)
 
 
 	def tokenize_text(self, text):
@@ -38,7 +42,7 @@ class Processor(object):
 
 	def get_paths_files(self):
 
-		print("Processor - Lendo arquivo de configuração:", self.cfg_file,"...")
+		self.logger.info("Processor - Lendo arquivo de configuração:" + self.cfg_file + "...")
 
 		files = open(self.cfg_file, 'r')
 		
@@ -47,7 +51,7 @@ class Processor(object):
 			splited = line.split('=')
 
 			if len(splited) != 2:
-				print ("ERRO de leitura!!!!")
+				self.logger.error("ERRO de leitura!!!!")
 
 			command	= splited[0]
 			path = splited[1].replace('\n','')
@@ -59,16 +63,16 @@ class Processor(object):
 			elif command == "ESPERADOS":
 				self.expecteds_path = path
 			else:
-				print("Erro no commando")
+				self.logger.error("Erro no commando")
 
 		if len(self.read_paths) == 0:
-			print("Não tem comandos de LEIA!!!!")
+			self.logger.error("Não tem comandos de LEIA!!!!")
 
 		if len(self.queries_path) == 0:
-			print("Não tem comando de CONSULTAS!!!")		
+			self.logger.error("Não tem comando de CONSULTAS!!!")		
 
 		if len(self.expecteds_path) == 0:
-			print("Não tem comando de ESPERADOS!!!")		
+			self.logger.error("Não tem comando de ESPERADOS!!!")		
 	
 		files.close()
 
@@ -78,12 +82,12 @@ class Processor(object):
 
 		queries_csv, expecteds_csv = self.generate_csv()
 
-		print("Processor - Escrevendo consultas...")
+		self.logger.info("Processor - Escrevendo consultas...")
 		queries_out = open(self.queries_path, "w")
 		queries_out.write(queries_csv)
 		queries_out.close()
 
-		print("Processor - Escrevendo esperados...")
+		self.logger.info("Processor - Escrevendo esperados...")
 		expected_out = open(self.expecteds_path, "w")
 		expected_out.write(expecteds_csv)	
 		expected_out.close()
@@ -91,9 +95,9 @@ class Processor(object):
 	#Load e read data from especified xml	
 	def read_xmls(self):
 
-		print("Processor - Iniciando a leitura dos arquivos xmls...")
+		self.logger.info("Processor - Iniciando a leitura dos arquivos xmls...")
 		for file in self.read_paths:
-			print("Processor - Lendo o arquivo:",file)
+			self.logger.info ("Processor - Lendo o arquivo:" + file)
 			for event, element in etree.iterparse(file, tag=["QueryNumber","QueryText","Item"]):
 
 			    if element.tag == "QueryNumber":
@@ -118,7 +122,7 @@ class Processor(object):
 	def generate_csv(self):
 
 
-		print("Processor - Gerando queries.csv e expected.csv")
+		self.logger.info("Processor - Gerando queries.csv e expected.csv")
 		queries_lines = []
 		expecteds_lines = []
 

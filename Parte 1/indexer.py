@@ -1,11 +1,14 @@
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from pickle import dump
+import logging
 
+logging.basicConfig(format='[%(levelname)s %(asctime)s %(name)s]\t%(message)s',filename='application.log',level=logging.INFO)
 
 class IndexerInvertedList(object):
 
 	def __init__(self, model, cfg_file):
+
 		self.cfg_file = cfg_file
 		self.path_write = ""
 		self.paths_reads = []
@@ -15,11 +18,12 @@ class IndexerInvertedList(object):
 		self.tf = []
 		self.idf = []
 		self.tf_idf = []
+		self.logger = logging.getLogger(__name__)
 
 	#Reading the config file for get the paths of files
 	def get_paths_files(self):
 		
-		print("Indexer Inverted List - Lendo arquivo de configuração:", self.cfg_file,"...")
+		self.logger.info("Indexer Inverted List - Lendo arquivo de configuração:" + self.cfg_file + "...")
 
 		files = open(self.cfg_file, 'r')
 		
@@ -28,7 +32,7 @@ class IndexerInvertedList(object):
 			splited = line.split('=')
 
 			if len(splited) != 2:
-				print ("ERRO de leitura!!!!")
+				self.logger.error("ERRO de leitura!!!!")
 
 			command	= splited[0]
 			path = splited[1].replace('\n','')
@@ -38,19 +42,19 @@ class IndexerInvertedList(object):
 			elif command == "ESCREVA":
 				self.path_write = path
 			else:
-				print("Erro no commando")
+				self.logger.error("Erro no commando")
 
 		if len(self.paths_reads) == 0:
-			print("Não tem comandos de LEIA!!!!")
+			self.logger.error("Não tem comandos de LEIA!!!!")
 
 		if len(self.path_write) == 0:
-			print("Não tem comando de ESCREVA!!!")		
+			self.logger.error("Não tem comando de ESCREVA!!!")		
 
 		files.close()
 
 	def create_term_document(self):
 
-		print("Indexer Inverted List - Gerando modelo...")
+		self.logger.info("Indexer Inverted List - Gerando modelo...")
 
 		mod = self.model_type(ngram_range=(1,1))
 		self.terms_documents = mod.fit_transform(self.contents.values())
@@ -58,7 +62,7 @@ class IndexerInvertedList(object):
 	#Reading csv file that content the inverted list and create term documents frenquecy matrix
 	def read_csv_file(self):
 
-		print("Indexer Inverted List - Lendo Lista Invertida...")
+		self.logger.info("Indexer Inverted List - Lendo Lista Invertida...")
 
 		for file in self.paths_reads:
 
@@ -81,7 +85,7 @@ class IndexerInvertedList(object):
 			csv_file.close()		
 
 	def write_model(self):
-		print("Indexer Inverted List - Escrevendo modelo...")
+		self.logger.info("Indexer Inverted List - Escrevendo modelo...")
 		export = {}
 		export["matrix"] = self.terms_documents
 		export["contents"] = self.contents

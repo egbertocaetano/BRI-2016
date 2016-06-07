@@ -3,8 +3,9 @@ from nltk import word_tokenize
 import re
 import unicodedata
 
+import logging
 
-
+logging.basicConfig(format='[%(levelname)s %(asctime)s %(name)s]\t%(message)s',filename='application.log',level=logging.INFO)
 
 class GeneratorInvertedList(object):
 
@@ -16,6 +17,7 @@ class GeneratorInvertedList(object):
 		self.document_id = None
 		self.no_stopwords_tokens = []
 		self.inverted_list_csv = None
+		self.logger = logging.getLogger(__name__)
 
 
 	def tokenize_text(self, text):
@@ -52,7 +54,7 @@ class GeneratorInvertedList(object):
 
 	def get_paths_files(self):
 		
-		print("Generator Inverted List - Lendo arquivo de configuração:", self.cfg_file,"...")
+		self.logger.info("Generator Inverted List - Lendo arquivo de configuração:" + self.cfg_file + "...")
 
 		files = open(self.cfg_file, 'r')
 		
@@ -61,7 +63,7 @@ class GeneratorInvertedList(object):
 			splited = line.split('=')
 
 			if len(splited) != 2:
-				print ("ERRO de leitura!!!!")
+				self.logger.error("ERRO de leitura!!!!")
 
 			command	= splited[0]
 			path = splited[1].replace('\n','')
@@ -71,19 +73,19 @@ class GeneratorInvertedList(object):
 			elif command == "ESCREVA":
 				self.write_path = path
 			else:
-				print("Erro no commando")
+				self.logger.error("Erro no commando")
 
 		if len(self.read_paths) == 0:
-			print("Não tem comandos de LEIA!!!!")
+			self.logger.error("Não tem comandos de LEIA!!!!")
 
 		if len(self.write_path) == 0:
-			print("Não tem comando de ESCREVA!!!")		
+			self.logger.error("Não tem comando de ESCREVA!!!")		
 
 		files.close()
 
 	def generate_csv(self, inverted_list):
 
-		print("Generator Inverted List - Gerando o arquivo de saída .csv...")
+		self.logger.info("Generator Inverted List - Gerando o arquivo de saída .csv...")
 
 		inverted_list_cvs = []
 
@@ -95,15 +97,15 @@ class GeneratorInvertedList(object):
 
 	def write_csv(self):
 
-		print("Generator Inverted List - Escrevendo arquivo de saída contendo lista invertida na extensão csv...")
+		self.logger.info("Generator Inverted List - Escrevendo arquivo de saída contendo lista invertida na extensão csv...")
 		out_csv = open(self.write_path, "w")
 		out_csv.write(self.inverted_list_cvs)
 		out_csv.close()
 
 	def read_xmls(self):
-		print("Generator Inverted List - Iniciando a leitura dos arquivos xmls e gerando a list invertida...")
+		self.logger.info("Generator Inverted List - Iniciando a leitura dos arquivos xmls e gerando a list invertida...")
 		for file in self.read_paths:
-			print("Generator Inverted List - Lendo o arquivo:",file)
+			self.logger.info("Generator Inverted List - Lendo o arquivo:" + file)
 			for event, element in etree.iterparse(file, tag=["RECORDNUM","ABSTRACT","EXTRACT"]):
 
 			    if element.tag == "RECORDNUM":
@@ -130,4 +132,3 @@ class GeneratorInvertedList(object):
 		self.generate_csv(self.inverted_list)
 		self.write_csv()
 		
-
